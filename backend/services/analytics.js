@@ -41,12 +41,12 @@ export const recordSeriesView = async ({
   const updates = [];
 
   if (seriesId) {
-    updates.push(seriesModel.findByIdAndUpdate(seriesId, { $inc: { views: 1 } }));
+    updates.push(seriesModel.findByIdAndUpdate(seriesId, { $inc: { views: 1 } }, { timestamps: false }));
     analyticsIncrement.seriesViews = 1;
   }
 
   if (episodeId) {
-    updates.push(episodeModel.findByIdAndUpdate(episodeId, { $inc: { views: 1 } }));
+    updates.push(episodeModel.findByIdAndUpdate(episodeId, { $inc: { views: 1 } }, { timestamps: false }));
   }
 
   updates.push(
