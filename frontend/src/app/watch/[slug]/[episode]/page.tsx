@@ -36,6 +36,8 @@ interface WatchHistoryItem {
   timestamp: number;
 }
 
+export const revalidate = 60; // Cache for 1 minute
+
 export default function WatchPage() {
   const params = useParams();
   const router = useRouter();

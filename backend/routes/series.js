@@ -62,7 +62,7 @@ router.get('/home', async (req, res, next) => {
       Series.find({}, projection).sort({ updatedAt: -1 }).limit(HOME_SECTION_LIMIT),
     ]);
 
-    setPublicCache(res, { maxAge: 300, staleWhileRevalidate: 1200 });
+    setPublicCache(res, { maxAge: 60, staleWhileRevalidate: 120 });
     res.json({
       success: true,
       data: {
@@ -111,8 +111,8 @@ router.get('/', async (req, res, next) => {
     const totalPages = Math.ceil(total / limitNum);
 
     setPublicCache(res, {
-      maxAge: normalizedSearch ? 60 : 300,
-      staleWhileRevalidate: normalizedSearch ? 300 : 1200,
+      maxAge: 60,
+      staleWhileRevalidate: normalizedSearch ? 60 : 120,
     });
     res.json({
       success: true,

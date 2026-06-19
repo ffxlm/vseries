@@ -5,11 +5,13 @@ import SeriesClientView from '@/components/SeriesClientView';
 import { createPageMetadata, getSiteUrl, jsonLdScriptProps } from '@/lib/seo';
 import { getRequiredApiUrl } from '@/lib/api';
 
+export const revalidate = 60;
+
 const getSeriesDetails = cache(async (slug: string) => {
   const apiUrl = getRequiredApiUrl('series details');
   const decodedSlug = decodeURIComponent(slug);
   const res = await fetch(`${apiUrl}/series/${encodeURIComponent(decodedSlug)}`, {
-    next: { revalidate: 3600 } // Cache for 1 hour
+    next: { revalidate: 60 }
   });
 
   if (!res.ok) return null;
