@@ -56,7 +56,7 @@ async function getCategorySeries(slug: string, page: number): Promise<CategorySe
       next: { revalidate: 60 }, // Cache for 1 minute
     });
     
-    if (!res.ok) return { series: [], pagination: null };
+    if (!res.ok) throw new Error(`Failed to fetch category series: ${res.status}`);
     
     const json = await res.json();
     return {
@@ -65,7 +65,7 @@ async function getCategorySeries(slug: string, page: number): Promise<CategorySe
     };
   } catch (error) {
     console.error('Error fetching category series:', error);
-    return { series: [], pagination: null };
+    throw error;
   }
 }
 

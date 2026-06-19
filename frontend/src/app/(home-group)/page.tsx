@@ -27,7 +27,7 @@ async function getHomeSeries(): Promise<HomeSeries> {
     });
     
     if (!res.ok) {
-      return { popular: [], newSeries: [], latest: [] };
+      throw new Error(`Failed to fetch home series: ${res.status}`);
     }
     
     const json = await res.json();
@@ -40,7 +40,7 @@ async function getHomeSeries(): Promise<HomeSeries> {
     if (shouldLogApiFetchError()) {
       console.error('Error fetching home series:', error);
     }
-    return { popular: [], newSeries: [], latest: [] };
+    throw error;
   }
 }
 
