@@ -230,6 +230,7 @@ router.get('/:slug/watch/:episodeNumber', async (req, res, next) => {
     ]);
 
     if (!currentEpisode) {
+      setPublicCache(res, { maxAge: 60, staleWhileRevalidate: 120 });
       return res.json({
         success: true,
         data: {
@@ -243,6 +244,7 @@ router.get('/:slug/watch/:episodeNumber', async (req, res, next) => {
       });
     }
 
+    setPublicCache(res, { maxAge: 3600, staleWhileRevalidate: 7200 });
     res.json({
       success: true,
       data: {
