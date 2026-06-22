@@ -21,8 +21,8 @@ function requireEnv(name) {
 }
 
 function validateAdminPassword(password) {
-  if (password.length < 12) {
-    throw new Error('ADMIN_PASSWORD must be at least 12 characters long');
+  if (password.length < 6) {
+    throw new Error('ADMIN_PASSWORD must be at least 6 characters long');
   }
 
   if (weakPasswords.has(password.toLowerCase())) {

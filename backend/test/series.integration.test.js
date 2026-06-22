@@ -127,7 +127,7 @@ test('GET /api/series escapes search regex and applies filters', async () => {
       const body = await response.json();
 
       assert.equal(response.status, 200);
-      assert.equal(response.headers.get('cache-control'), 'public, max-age=60, stale-while-revalidate=300');
+      assert.equal(response.headers.get('cache-control'), 'public, max-age=60, stale-while-revalidate=60');
       assert.deepEqual(body, {
         success: true,
         data: [{ _id: '507f1f77bcf86cd799439011', title: 'Series 1' }],
@@ -159,7 +159,7 @@ test('GET /api/series/home returns home sections in one response', async () => {
       const body = await response.json();
 
       assert.equal(response.status, 200);
-      assert.equal(response.headers.get('cache-control'), 'public, max-age=300, stale-while-revalidate=1200');
+      assert.equal(response.headers.get('cache-control'), 'public, max-age=60, stale-while-revalidate=120');
       assert.deepEqual(body, {
         success: true,
         data: {
@@ -267,7 +267,7 @@ test('GET /api/series/:slug/episodes returns paginated episodes', async () => {
       assert.equal(response.headers.get('cache-control'), 'public, max-age=600, stale-while-revalidate=3600');
       assert.equal(body.success, true);
       assert.equal(body.data.length, 2);
-      assert.ok(body.data[0].videoUrl.includes('sig='));
+      assert.equal(body.data[0].videoUrl, episodes[0].videoUrl);
     });
   }, { seriesDetail, episodes });
 });

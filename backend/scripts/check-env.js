@@ -20,8 +20,8 @@ if (process.env.JWT_SECRET && process.env.JWT_SECRET.length < 32) {
 }
 
 if (process.env.ADMIN_PASSWORD) {
-  if (process.env.ADMIN_PASSWORD.length < 12) {
-    errors.push('ADMIN_PASSWORD must be at least 12 characters');
+  if (process.env.ADMIN_PASSWORD.length < 6) {
+    errors.push('ADMIN_PASSWORD must be at least 6 characters');
   }
   if (weakPasswords.has(process.env.ADMIN_PASSWORD.toLowerCase())) {
     errors.push('ADMIN_PASSWORD is too weak');

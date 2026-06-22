@@ -10,16 +10,20 @@ const BASE_URL = 'https://api.seriesjeen.online/api';
 
 const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
-// Helper for making API calls with Native Fetch
+// Helper for making API calls with Native Fetch and timeout
 async function apiCall(endpoint) {
   const url = `${BASE_URL}${endpoint}`;
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 15000); // 15 seconds timeout
+
   try {
     const response = await fetch(url, {
       method: 'GET',
       headers: {
         'Authorization': `Bearer ${API_KEY}`,
         'Accept': 'application/json'
-      }
+      },
+      signal: controller.signal
     });
 
     if (!response.ok) {
@@ -31,8 +35,14 @@ async function apiCall(endpoint) {
 
     return await response.json();
   } catch (error) {
+    if (error.name === 'AbortError') {
+      console.error(`Error fetching from API [${url}]: Request timed out (15s)`);
+      throw new Error('API call timed out (15s)');
+    }
     console.error(`Error fetching from API [${url}]:`, error.message);
     throw error;
+  } finally {
+    clearTimeout(timeoutId);
   }
 }
 
@@ -164,22 +174,28 @@ Usage:
         const series = localSeries[i];
         
         // Since we mapped the API's series_id, we need to know what it was.
-        // We can search the API to find the series_id matching this series title,
-        // or we could have stored it. Let's look up by querying page 1 to 20 for matching title/slug.
-        console.log(`[${i + 1}/${localSeries.length}] Locating source series_id for: "${series.title}"...`);
-        let apiSeriesId = null;
+        // We check if it is already stored, otherwise search the API.
+        let apiSeriesId = series.apiSeriesId || null;
 
-        // Search API pages for the series
-        findLoop: for (let page = 1; page <= 20; page++) {
-          const list = await apiCall(`/platform/reelshort/thai?page=${page}`);
-          if (list && list.items) {
-            const match = list.items.find(item => item.title === series.title || item.cover === series.posterUrl);
-            if (match) {
-              apiSeriesId = match.series_id;
-              break findLoop;
+        if (!apiSeriesId) {
+          console.log(`[${i + 1}/${localSeries.length}] Locating source series_id for: "${series.title}" (Fallback search)...`);
+          // Search API pages for the series
+          findLoop: for (let page = 1; page <= 20; page++) {
+            const list = await apiCall(`/platform/reelshort/thai?page=${page}`);
+            if (list && list.items) {
+              const match = list.items.find(item => item.title === series.title || item.cover === series.posterUrl);
+              if (match) {
+                apiSeriesId = match.series_id;
+                // Cache it for future updates
+                series.apiSeriesId = apiSeriesId;
+                await series.save();
+                break findLoop;
+              }
             }
+            await delay(200);
           }
-          await delay(200);
+        } else {
+          console.log(`[${i + 1}/${localSeries.length}] Using cached series_id for: "${series.title}" (${apiSeriesId})`);
         }
 
         if (apiSeriesId) {
@@ -230,11 +246,16 @@ Usage:
           description: apiSeriesItem.description || 'ไม่มีเรื่องย่อ',
           posterUrl: apiSeriesItem.cover,
           languageType,
-          totalEpisodes: apiSeriesItem.episode_count || 0
+          totalEpisodes: apiSeriesItem.episode_count || 0,
+          apiSeriesId: seriesIdArg
         });
         console.log(`Created new series in database: "${series.title}" with slug: "${series.slug}"`);
       } else {
         console.log(`Series "${series.title}" already exists in local database.`);
+        if (!series.apiSeriesId) {
+          series.apiSeriesId = seriesIdArg;
+          await series.save();
+        }
       }
 
       await syncEpisodes(series, seriesIdArg, false);
@@ -279,11 +300,16 @@ Usage:
               description: item.description || 'ไม่มีเรื่องย่อ',
               posterUrl: item.cover,
               languageType,
-              totalEpisodes: item.episode_count || 0
+              totalEpisodes: item.episode_count || 0,
+              apiSeriesId: item.series_id
             });
             console.log(`Created Series: "${series.title}" (slug: ${series.slug})`);
           } else {
             console.log(`Series already exists: "${series.title}". Skipping creation.`);
+            if (!series.apiSeriesId) {
+              series.apiSeriesId = item.series_id;
+              await series.save();
+            }
           }
 
           // Sync episodes for this series

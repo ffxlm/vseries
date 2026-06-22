@@ -9,7 +9,8 @@ const seriesSchema = new mongoose.Schema({
   totalEpisodes: { type: Number, default: 0 },
   views: { type: Number, default: 0 },
   isPopular: { type: Boolean, default: false },
-  isNewSeries: { type: Boolean, default: false }
+  isNewSeries: { type: Boolean, default: false },
+  apiSeriesId: { type: String, default: null }
 }, { timestamps: true });
 
 // Optimize search and lookups
@@ -19,5 +20,6 @@ seriesSchema.index({ createdAt: -1 });
 seriesSchema.index({ isPopular: 1, createdAt: -1 });
 seriesSchema.index({ isNewSeries: 1, createdAt: -1 });
 seriesSchema.index({ languageType: 1, createdAt: -1 });
+seriesSchema.index({ apiSeriesId: 1 });
 
 export default mongoose.model('Series', seriesSchema);
